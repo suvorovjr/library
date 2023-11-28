@@ -8,11 +8,6 @@ DB_NAME = os.getenv('library')
 DB_USER = os.getenv('postgres')
 DB_PASSWORD = os.getenv("DATABASE_PASSWORD")
 
-DB_HOST="127.0.0.1"
-DB_NAME='my_db'
-DB_USER='postgres'
-DB_PASSWORD='2512'
-
 
 def main():
     """main func"""
