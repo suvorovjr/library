@@ -14,7 +14,7 @@ class UserInterface:
             print("3 - Поиск книги по жанру")
             print("4 - Показать все книги в библиотеке")
             user_input = input('5 - Выход из приложения\n')
-            if user_input in ["1", "2", "3", "4"]:
+            if user_input in ["1", "2", "3", "4", "5"]:
                 return user_input
             else:
                 print("Ввод неверный. Укажите валидный номер.")
@@ -47,5 +47,17 @@ class UserInterface:
             elif user_choice == "2":
                 genre = input("Введите свой жанр\n")
                 return title, author, description, genre, user_choice
+            else:
+                print("Ввод неверный. Укажите валидный номер.")
+
+    @staticmethod
+    def book_interface():
+        while True:
+            print("Выберите дейтсвие:")
+            print("1 - Открыть полное описание книги")
+            print("2 - Удалить книгу")
+            user_coise = input("3 - перейти в главное меню\n")
+            if user_coise in ["1", "2", "3"]:
+                return user_coise
             else:
                 print("Ввод неверный. Укажите валидный номер.")

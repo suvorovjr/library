@@ -3,7 +3,7 @@ import psycopg2
 
 class DBManager:
 
-    def __init__(self, db_host, db_name, db_user, db_password):
+    def __init__(self, db_host: str, db_name: str, db_user: str, db_password: str):
         """
         Конструктор класса.
         :param db_host: Хост базы данных.
@@ -17,13 +17,12 @@ class DBManager:
         self.db_user = db_user
         self.db_password = db_password
 
-    def get_connection(self):
+    def get_connection(self) -> psycopg2.connect:
         """
         Устанавливает соединение с базой данных
         :return: Объект соединения с базой данных.
         """
 
-        print(self.db_password)
         connection = psycopg2.connect(
             host=self.db_host,
             database=self.db_name,
@@ -32,49 +31,67 @@ class DBManager:
         )
         return connection
 
-    def execute_query(self, query):
+    def execute_query(self, query: str, data=None) -> None:
         """
         Выполняет SQL-запрос к базе данных.
         :param query: SQL-запрос.
-        :param data: Данные для выполнения множественных операций (INSERT). По умолчанию None.
-        :return:
+        :param data: данные для ввода в БД
+        :return: None
         """
 
         connection = self.get_connection()
         cursor = connection.cursor()
-        cursor.execute(query)
+        if data:
+            cursor.execute(query, data)
+        else:
+            cursor.execute(query)
         connection.commit()
         cursor.close()
         connection.close()
 
-    def create_tables(self):
+    def create_database(self) -> None:
+        """
+        Создает БД если она не существует.
+        :return: None
+        """
+        try:
+            connection = psycopg2.connect(host=self.db_host, user=self.db_user, password=self.db_password)
+            connection.autocommit = True
+            cursor = connection.cursor()
+            cursor.execute(f"CREATE DATABASE {self.db_name}")
+        except psycopg2.Error as e:
+            pass
+
+    def create_tables(self) -> None:
         """
         Создает таблицы в базе данных, если они не существуют.
         :return: None
         """
 
         create_table_query = """
-            CREATE TABLE IF NOT EXISTS genres (genre_name VARCHAR(255) UNIQUE);
-
-            CREATE TABLE IF NOT EXISTS books (
-                book_title VARCHAR(255),
-                book_author VARCHAR(255),
-                book_description INT,
-                genre_name VARCHAR(255) REFERENCES genres(genre_name)
-            );"""
+                CREATE TABLE IF NOT EXISTS genres (genre_name VARCHAR(255) UNIQUE);
+    
+                CREATE TABLE IF NOT EXISTS books (
+                    book_id SERIAL PRIMARY KEY,
+                    book_title VARCHAR(255) UNIQUE,
+                    book_author VARCHAR(255),
+                    book_description VARCHAR(255),
+                    genre_name VARCHAR(255) REFERENCES genres(genre_name)
+                );"""
         self.execute_query(create_table_query)
 
-    def insert_new_genre(self, genre):
+    def insert_new_genre(self, genre: list) -> None:
         """"
         Добавляет новый жанр введенный пользователем
         :param genre: Жанр введенный пользователем.
         :return: None
         """
 
-        insert_genre_query = f"INSERT INTO genres ({genre}) VALUES (%s)"
-        self.execute_query(insert_genre_query)
+        insert_genre_query = f"INSERT INTO genres (genre_name) VALUES (%s)"
+        print(genre, type(genre))
+        self.execute_query(insert_genre_query, genre)
 
-    def insert_new_book(self, data):
+    def insert_new_book(self, data) -> None:
         """
         Добавляет новую книгу в базу данных.
         :param data: Данные книги
@@ -82,9 +99,10 @@ class DBManager:
         """
 
         symbols = ", ".join(["%s"] * len(data))
-        keys = ", ".join(data)
+        keys = "book_title, book_author, book_description, genre_name"
         insert_book_query = f"INSERT INTO books ({keys}) VALUES ({symbols})"
-        self.execute_query(insert_book_query)
+        print(insert_book_query)
+        self.execute_query(insert_book_query, data)
 
     def search_by_name(self, keyword):
         """
@@ -145,4 +163,9 @@ class DBManager:
 
         with self.get_connection() as connection, connection.cursor() as cursor:
             delete_book_query = f"DELETE FROM books WHERE book_title LIKE ('{book_title}')"
+            print(delete_book_query)
             cursor.execute(delete_book_query)
+
+    def test(self, data):
+        query = f"INSERT INTO genres (genre_name) VALUES (%s)"
+        self.execute_query(query, data)
